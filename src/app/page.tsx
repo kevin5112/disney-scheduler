@@ -1,6 +1,8 @@
 "use client";
 
+import { cleanOCRText } from "@/utils/cleantext";
 import { extractTextFromImage } from "@/utils/ocr";
+import { parseScheduleFromOCR } from "@/utils/parser";
 import { useState } from "react";
 
 export default function Home() {
@@ -20,9 +22,13 @@ export default function Home() {
     setLoading(true);
 
     const text = await extractTextFromImage(image);
+    const cleanedText = cleanOCRText(text);
+    console.log("OCR Output:", cleanedText);
+    setOcrText(cleanedText);
 
-    console.log("OCR Output:", text);
-    setOcrText(text);
+    const parsed = parseScheduleFromOCR(cleanedText);
+    console.log("Parsed Schedule:", parsed);
+
     setLoading(false);
   };
 
