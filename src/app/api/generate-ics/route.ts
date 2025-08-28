@@ -3,9 +3,9 @@ import { createEvents } from "ics";
 import { getIcsDatePartsLocal } from "@/utils/geticsdate";
 import { ScheduleEntry } from "@/utils/parser";
 
-console.log("ICS version:", require("ics/package.json").version);
-
 export async function POST(req: NextRequest) {
+  console.log("ICS version:", require("ics/package.json").version);
+
   const data = await req.json();
 
   const events = data.map((entry: ScheduleEntry) => {
