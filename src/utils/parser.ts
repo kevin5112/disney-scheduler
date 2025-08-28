@@ -25,7 +25,7 @@ export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
     timeMatch = line.match(/(\d{1,2}:\d{2})\s*(?:to|-|-)?\s*(\d{1,2}:\d{2})/);
     if (timeMatch && currentDate) {
       const nextLine = lines[i + 1] || "";
-      const locationMatch = nextLine.match(/[\w\s\-&]+/);
+      const locationMatch = nextLine.match(/[A-Za-z\s]{4,}/);
       currentLocation = locationMatch?.[0]?.trim() || "Unknown";
 
       if (currentDate) {

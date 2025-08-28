@@ -4,11 +4,13 @@ import { cleanOCRText } from "@/utils/cleantext";
 import { extractTextFromImage } from "@/utils/ocr";
 import { parseScheduleFromOCR } from "@/utils/parser";
 import { useState } from "react";
+import { ScheduleEntry } from "@/utils/parser";
 
 export default function Home() {
   const [image, setImage] = useState<File | null>(null);
   const [ocrText, setOcrText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [parsedSchedule, setParsedSchedule] = useState<ScheduleEntry[]>([]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,8 +30,26 @@ export default function Home() {
 
     const parsed = parseScheduleFromOCR(cleanedText);
     console.log("Parsed Schedule:", parsed);
+    setParsedSchedule(parsed);
+    console.log("JSON Schedule:", JSON.stringify(parsedSchedule));
 
     setLoading(false);
+  };
+
+  const handleDownloadICS = async () => {
+    const res = await fetch("/api/generate-ics", {
+      method: "POST",
+      headers: { "Content-Type": "applicaiton/json" },
+      body: JSON.stringify(parsedSchedule),
+    });
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "disney_schedule.ics";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -65,6 +85,14 @@ export default function Home() {
           <h2 className="font-semibold text-lg mb-2">OCR Result:</h2>
           <p className="text-black">{ocrText}</p>
         </div>
+      )}
+      {parsedSchedule?.length > 0 && (
+        <button
+          onClick={handleDownloadICS}
+          className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green700"
+        >
+          Download .ics File
+        </button>
       )}
     </main>
   );
