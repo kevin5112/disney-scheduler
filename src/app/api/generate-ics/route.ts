@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
 import { createEvents } from "ics";
 import { getIcsDatePartsLocal } from "@/utils/geticsdate";
+import { ScheduleEntry } from "@/utils/parser";
 
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
-  const events = data.map((entry: any) => {
+  const events = data.map((entry: ScheduleEntry) => {
     const [startHour] = entry.startTime.split(":").map(Number);
     const [endHour] = entry.endTime.split(":").map(Number);
 
