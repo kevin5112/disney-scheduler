@@ -7,6 +7,7 @@ export function getIcsDatePartsLocal(
 ): [number, number, number, number, number] {
   const baseDate = DateTime.fromFormat(date, "LLL d, yyyy", {
     zone: "America/Los_Angeles",
+    setZone: true,
   });
 
   if (!baseDate.isValid) {
