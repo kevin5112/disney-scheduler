@@ -3,6 +3,8 @@ import { createEvents } from "ics";
 import { getIcsDatePartsLocal } from "@/utils/geticsdate";
 import { ScheduleEntry } from "@/utils/parser";
 
+console.log("ICS version:", require("ics/package.json").version);
+
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
@@ -21,6 +23,8 @@ export async function POST(req: NextRequest) {
       description: `${entry.date}, ${entry.startTime} to ${entry.endTime}\nImported from Disney schedule screenshot.`,
       start,
       end,
+      startInputType: "local",
+      endInputType: "local",
     };
   });
 
