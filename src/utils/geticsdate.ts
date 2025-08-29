@@ -9,10 +9,10 @@ export function getIcsDatePartsLocal(
     zone: "America/Los_Angeles",
     setZone: true,
   });
-
   if (!baseDate.isValid) {
     throw new Error(`Invalid base date: ${date}`);
   }
+  console.log("Luxon thinks current zone is:", DateTime.now().zoneName);
 
   const [hour, minute] = time.split(":").map(Number);
 
