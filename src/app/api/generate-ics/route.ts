@@ -23,7 +23,9 @@ export async function POST(req: NextRequest) {
       start,
       end,
       startInputType: "local",
+      startOutputType: "local",
       endInputType: "local",
+      endOutputType: "local",
     };
   });
 
