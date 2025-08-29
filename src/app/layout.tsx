@@ -28,14 +28,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <footer className="w-full text-center text-sm text-gray-500 mt-8 pb-4 space-y-1">
+          <div>
+            This tool is currently in testing and early development. Features
+            may change.
+          </div>
+          <div>
+            © {new Date().getFullYear()} Kevin Chen. All rights reserved.
+          </div>
+        </footer>
       </body>
-      <footer className="w-full text-center text-sm text-gray-500 mt-8 pb-4 space-y-1">
-        <div>
-          This tool is currently in testing and early development. Features may
-          change.
-        </div>
-        <div>© {new Date().getFullYear()} Kevin Chen. All rights reserved.</div>
-      </footer>
     </html>
   );
 }

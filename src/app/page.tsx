@@ -6,6 +6,7 @@ import { parseScheduleFromOCR } from "@/utils/parser";
 import { useState } from "react";
 import { ScheduleEntry } from "@/utils/parser";
 import { ShiftPreviewList } from "@/components/ShiftPreviewList";
+import { cleanKnownLocations } from "@/utils/cleanKnownLocations";
 
 export default function Home() {
   const [image, setImage] = useState<File | null>(null);
@@ -26,10 +27,15 @@ export default function Home() {
 
     const text = await extractTextFromImage(image);
     const cleanedText = cleanOCRText(text);
-    console.log("OCR Output:", cleanedText);
-    setOcrText(cleanedText);
+    const finalText = cleanedText
+      .split("\n")
+      .map(cleanKnownLocations)
+      .join("\n");
 
-    const parsed = parseScheduleFromOCR(cleanedText);
+    console.log("OCR Output(cleaned):", finalText);
+    setOcrText(finalText);
+
+    const parsed = parseScheduleFromOCR(finalText);
     console.log("Parsed Schedule:", parsed);
     setParsedSchedule(parsed);
     console.log("JSON Schedule:", JSON.stringify(parsedSchedule));
