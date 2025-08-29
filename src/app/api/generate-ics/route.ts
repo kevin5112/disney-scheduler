@@ -1,3 +1,4 @@
+import "@/lib/luxon-setup";
 import { NextRequest } from "next/server";
 import { createEvents } from "ics";
 import { getIcsDatePartsLocal } from "@/utils/geticsdate";
