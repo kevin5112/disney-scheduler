@@ -12,7 +12,6 @@ export function getIcsDatePartsLocal(
   if (!baseDate.isValid) {
     throw new Error(`Invalid base date: ${date}`);
   }
-  console.log("Luxon thinks current zone is:", DateTime.now().zoneName);
 
   const [hour, minute] = time.split(":").map(Number);
 
