@@ -13,22 +13,16 @@ export function resolveRelativeDates(text: string): string {
     ) {
       const isToday = line.toLowerCase() === "today";
       const nextLine = lines[i + 1]?.trim();
-      console.log("isToday:", isToday, "\nnextLine:", nextLine);
-
       const dateMatch = nextLine?.match(/([A-Z]+),?\s*(\w+\s+\d{1,2})/i);
-      console.log("dateMatch:", dateMatch);
 
       if (dateMatch) {
         try {
-          console.log("we parsing baby");
           const parsedDate = parse(
             `${dateMatch[2]}, ${new Date().getFullYear()}`,
             "MMM d, yyyy",
             new Date()
           );
-          console.log("parsedDate:", parsedDate);
           line = format(parsedDate, "MMM d, yyyy");
-          console.log("line:", line);
         } catch {
           line = format(
             isToday ? new Date() : addDays(new Date(), 1),

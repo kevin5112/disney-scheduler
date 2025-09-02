@@ -14,7 +14,6 @@ export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
   let currentDate = "";
   let currentLocation = "";
   let timeMatch: RegExpMatchArray | null = null;
-  console.log("lines:", lines);
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
