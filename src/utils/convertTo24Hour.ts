@@ -1,5 +1,6 @@
 export function convertTo24Hour(time: string, ampm?: string): string {
-  let [hours, minutes] = time.split(":").map(Number);
+  let [hours, minutesConst] = time.split(":").map(Number);
+  const minutes = minutesConst;
 
   if (ampm) {
     ampm = ampm.toUpperCase();
