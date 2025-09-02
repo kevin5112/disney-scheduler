@@ -31,14 +31,10 @@ export default function Home() {
     const withDates = resolveRelativeDates(cleanedText);
     const finalText = withDates.split("\n").map(cleanKnownLocations).join("\n");
 
-    console.log("OCR Output(cleaned):", finalText);
     setOcrText(finalText);
 
     const parsed = parseScheduleFromOCR(finalText);
-    console.log("Parsed Schedule:", parsed);
     setParsedSchedule(parsed);
-    console.log("JSON Schedule:", JSON.stringify(parsedSchedule));
-
     setLoading(false);
   };
 
