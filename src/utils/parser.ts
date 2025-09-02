@@ -1,3 +1,5 @@
+import { convertTo24Hour } from "./convertTo24Hour";
+
 export interface ScheduleEntry {
   date: string;
   startTime: string;
@@ -22,8 +24,14 @@ export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
       continue;
     }
 
-    timeMatch = line.match(/(\d{1,2}:\d{2})\s*(?:to|-|-)?\s*(\d{1,2}:\d{2})/);
+    const timeRangeRegex =
+      /(\d{1,2}:\d{2})\s*(AM|PM)?\s*to\s*(\d{1,2}:\d{2})\s*(AM|PM)?/i;
+    // old regex: /(\d{1,2}:\d{2})\s*(?:to|-|-)?\s*(\d{1,2}:\d{2})/
+    timeMatch = line.match(timeRangeRegex);
     if (timeMatch && currentDate) {
+      const [, rawStart, startAMPM, rawEnd, endAMPM] = timeMatch;
+      const startTime = convertTo24Hour(rawStart, startAMPM);
+      const endTime = convertTo24Hour(rawEnd, endAMPM);
       const nextLine = lines[i + 1] || "";
       const locationMatch = nextLine.match(/[A-Za-z\s]{4,}/);
       currentLocation = locationMatch?.[0]?.trim() || "Unknown";
@@ -31,8 +39,8 @@ export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
       if (currentDate) {
         entries.push({
           date: currentDate,
-          startTime: timeMatch[1],
-          endTime: timeMatch[2],
+          startTime: startTime,
+          endTime: endTime,
           location: currentLocation,
         });
       }
