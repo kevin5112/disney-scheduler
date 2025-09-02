@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ScheduleEntry } from "@/utils/parser";
 import { ShiftPreviewList } from "@/components/ShiftPreviewList";
 import { cleanKnownLocations } from "@/utils/cleanKnownLocations";
+import { resolveRelativeDates } from "@/utils/resolveRelativeDates";
 
 export default function Home() {
   const [image, setImage] = useState<File | null>(null);
@@ -27,10 +28,8 @@ export default function Home() {
 
     const text = await extractTextFromImage(image);
     const cleanedText = cleanOCRText(text);
-    const finalText = cleanedText
-      .split("\n")
-      .map(cleanKnownLocations)
-      .join("\n");
+    const withDates = resolveRelativeDates(cleanedText);
+    const finalText = withDates.split("\n").map(cleanKnownLocations).join("\n");
 
     console.log("OCR Output(cleaned):", finalText);
     setOcrText(finalText);
@@ -95,12 +94,12 @@ export default function Home() {
           </button>
         </>
       )}
-      {/* {ocrText && (
+      {ocrText && (
         <div className="mt-6 w-full max-w-2xl bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap">
           <h2 className="font-semibold text-lg mb-2">OCR Result:</h2>
           <p className="text-black">{ocrText}</p>
         </div>
-      )} */}
+      )}
       {parsedSchedule.length > 0 && (
         <ShiftPreviewList shifts={parsedSchedule} />
       )}
