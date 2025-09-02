@@ -94,7 +94,7 @@ export default function Home() {
           </button>
         </>
       )}
-      {ocrText && (
+      {ocrText && process.env.VERCEL_ENV === "preview" && (
         <div className="mt-6 w-full max-w-2xl bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap">
           <h2 className="font-semibold text-lg mb-2">OCR Result:</h2>
           <p className="text-black">{ocrText}</p>
