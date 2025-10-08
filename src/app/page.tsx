@@ -60,6 +60,8 @@ export default function Home() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const uploaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isUploaderHighlighted, setIsUploaderHighlighted] = useState(false);
 
   useEffect(() => {
     if (!image) {
@@ -142,7 +144,24 @@ export default function Home() {
 
   const handleScrollToUploader = () => {
     uploaderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setIsUploaderHighlighted(true);
+
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+
+    highlightTimeoutRef.current = setTimeout(() => {
+      setIsUploaderHighlighted(false);
+    }, 1400);
   };
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950">
@@ -187,8 +206,17 @@ export default function Home() {
           </div>
         </header>
 
-        <div ref={uploaderRef} className="mt-16 grid flex-1 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <Card className="border-white/20 bg-white/85 shadow-2xl shadow-sky-500/10 backdrop-blur">
+        <div
+          ref={uploaderRef}
+          className="mt-16 grid flex-1 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"
+        >
+          <Card
+            className={cn(
+              "border-white/20 bg-white/85 shadow-2xl shadow-sky-500/10 backdrop-blur",
+              isUploaderHighlighted &&
+                "ring-2 ring-sky-400/80 ring-offset-2 ring-offset-slate-950/40 transition duration-500 ease-out"
+            )}
+          >
             <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
                 <CardTitle className="flex items-center gap-2 text-2xl text-slate-900">
