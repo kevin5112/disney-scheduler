@@ -77,6 +77,17 @@ export default function Home() {
 
   const hasSchedule = parsedSchedule.length > 0;
 
+  useEffect(() => {
+    if (!isPreviewOpen) return undefined;
+
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [isPreviewOpen]);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setImage(event.target.files[0]);
@@ -158,11 +169,17 @@ export default function Home() {
           </p>
           <div className="mt-8 grid w-full gap-4 rounded-3xl border border-white/20 bg-white/10 p-6 text-left text-slate-100 backdrop-blur sm:grid-cols-3">
             {steps.map(({ icon: Icon, title, description }, index) => (
-              <div key={title} className="flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/5 p-4">
-                <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10 text-sky-100">
+              <div
+                key={title}
+                className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/20 bg-white/5 p-4 shadow-lg shadow-slate-950/20 transition duration-300 hover:-translate-y-1 hover:border-sky-300/60 hover:shadow-sky-500/30"
+              >
+                <span className="pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100">
+                  <span className="absolute inset-0 bg-gradient-to-br from-sky-400/15 via-transparent to-violet-400/20" />
+                </span>
+                <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10 text-sky-100 transition-transform duration-300 group-hover:scale-105 group-hover:border-sky-200/80 group-hover:bg-white/20">
                   <Icon className="size-5" aria-hidden />
                 </span>
-                <div>
+                <div className="relative">
                   <p className="text-sm font-semibold uppercase tracking-wide text-sky-100/90">
                     Step {index + 1}: {title}
                   </p>
@@ -346,7 +363,7 @@ export default function Home() {
 
       {isPreviewOpen && previewUrl && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/90 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
@@ -356,14 +373,20 @@ export default function Home() {
             onClick={handleClosePreview}
             aria-label="Close preview"
           />
-          <div className="relative z-10 mx-auto flex max-h-[90vh] max-w-4xl items-center justify-center p-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={previewUrl} alt="Full size schedule preview" className="max-h-full w-full rounded-2xl object-contain shadow-2xl" />
+          <div className="relative z-10 mx-auto w-full max-w-5xl p-6">
+            <div className="relative mx-auto max-h-[calc(100vh-3rem)] overflow-auto rounded-3xl border border-white/20 bg-slate-950/70 p-4 shadow-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={previewUrl}
+                alt="Full size schedule preview"
+                className="mx-auto block h-auto max-h-[calc(100vh-7rem)] w-full max-w-full object-contain"
+              />
+            </div>
             <Button
               type="button"
               size="icon"
               variant="secondary"
-              className="absolute right-6 top-6 rounded-full bg-white/90 text-slate-900 hover:bg-white"
+              className="absolute right-10 top-10 rounded-full bg-white/90 text-slate-900 hover:bg-white"
               onClick={handleClosePreview}
             >
               <X className="size-5" />
