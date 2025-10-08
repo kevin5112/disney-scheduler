@@ -57,7 +57,8 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [parsedSchedule, setParsedSchedule] = useState<ScheduleEntry[]>([]);
-  const [zoom, setZoom] = useState(1);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const uploaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -80,14 +81,14 @@ export default function Home() {
     if (event.target.files && event.target.files.length > 0) {
       setImage(event.target.files[0]);
       setParsedSchedule([]);
-      setZoom(1);
+      setIsPreviewOpen(false);
     }
   };
 
   const handleClearUpload = () => {
     setImage(null);
     setParsedSchedule([]);
-    setZoom(1);
+    setIsPreviewOpen(false);
   };
 
   const handleReplacePhoto = () => {
@@ -130,6 +131,19 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
+  const handleOpenPreview = () => {
+    if (!previewUrl) return;
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+  };
+
+  const handleScrollToUploader = () => {
+    uploaderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(167,139,250,0.18),_transparent_55%)]" />
@@ -146,9 +160,34 @@ export default function Home() {
           <p className="mt-4 text-lg text-slate-200">
             Upload your schedule screenshot, let our OCR do the busy work, and download a clean .ics file ready to drop into your favorite calendar.
           </p>
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="grid w-full gap-4 rounded-3xl border border-white/20 bg-white/10 p-6 text-left text-slate-100 backdrop-blur sm:grid-cols-3">
+              {steps.map(({ icon: Icon, title, description }, index) => (
+                <div key={title} className="flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/5 p-4">
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10 text-sky-100">
+                    <Icon className="size-5" aria-hidden />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-sky-100/90">
+                      Step {index + 1}: {title}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-200/80">{description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button
+              type="button"
+              size="lg"
+              className="gap-2 bg-sky-500 text-white hover:bg-sky-500/90"
+              onClick={handleScrollToUploader}
+            >
+              Let&apos;s go
+            </Button>
+          </div>
         </header>
 
-        <div className="mt-12 grid flex-1 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div ref={uploaderRef} className="mt-16 grid flex-1 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           <Card className="border-white/20 bg-white/85 shadow-2xl shadow-sky-500/10 backdrop-blur">
             <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
@@ -157,8 +196,7 @@ export default function Home() {
                   Upload & preview your schedule
                 </CardTitle>
                 <CardDescription className="max-w-xl text-slate-600">
-                  Start by selecting a screenshot of your shifts. You can zoom in to double-check details before running the
-                  extractor.
+                  Start by selecting a screenshot of your shifts. Tap the preview to pop it into a distraction-free full-screen view before running the extractor.
                 </CardDescription>
               </div>
               {image && (
@@ -188,15 +226,14 @@ export default function Home() {
                 <div className="space-y-5">
                   <div
                     role="presentation"
-                    className="group relative max-h-[28rem] overflow-auto rounded-3xl border border-slate-200/80 bg-slate-950/60 shadow-inner"
+                    className="group relative max-h-[28rem] overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-950/60 shadow-inner"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewUrl}
                       alt="Uploaded schedule preview"
-                      style={{ transform: `scale(${zoom})`, transformOrigin: "center top" }}
-                      className="mx-auto block max-h-[32rem] w-full origin-center bg-slate-900/40 object-contain transition-transform duration-300 ease-out"
-                      onClick={handleReplacePhoto}
+                      className="mx-auto block max-h-[32rem] w-full origin-center bg-slate-900/40 object-contain transition duration-300 ease-out group-hover:scale-[1.02]"
+                      onClick={handleOpenPreview}
                     />
 
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent p-4 text-slate-100">
@@ -214,23 +251,6 @@ export default function Home() {
                         <UploadCloud className="size-3.5" />
                         Replace photo
                       </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-inner sm:flex-row sm:items-center sm:justify-between">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Zoom</div>
-                    <div className="flex w-full items-center gap-3 sm:w-auto">
-                      <input
-                        type="range"
-                        min={1}
-                        max={2.5}
-                        step={0.1}
-                        value={zoom}
-                        onChange={(event) => setZoom(Number(event.target.value))}
-                        className="h-2 w-full flex-1 cursor-pointer appearance-none rounded-full bg-slate-200 accent-sky-500"
-                        aria-label="Zoom uploaded schedule"
-                      />
-                      <span className="w-16 text-right text-sm font-semibold text-slate-600">{Math.round(zoom * 100)}%</span>
                     </div>
                   </div>
                 </div>
@@ -254,22 +274,6 @@ export default function Home() {
                 </label>
               )}
 
-              <div className="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm sm:grid-cols-3">
-                {steps.map(({ icon: Icon, title, description }, index) => (
-                  <div
-                    key={title}
-                    className="rounded-xl border border-white/60 bg-white/70 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    <div className="flex size-10 items-center justify-center rounded-full bg-sky-100 text-sky-500">
-                      <Icon className="size-5" aria-hidden />
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-slate-900">
-                      {index + 1}. {title}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">{description}</p>
-                  </div>
-                ))}
-              </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 border-t border-slate-200/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-500">Run the extractor to populate your shifts, then export them to your calendar.</p>
@@ -347,40 +351,38 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="border-white/30 bg-white/75 shadow-lg shadow-sky-500/5 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg text-slate-900">
-                  <Sparkles className="size-5 text-sky-500" />
-                  How it works
-                </CardTitle>
-                <CardDescription className="text-slate-600">
-                  A quick walkthrough of what happens after you upload.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ol className="space-y-4">
-                  {steps.map(({ icon: Icon, title, description }, index) => (
-                    <li
-                      key={title}
-                      className="flex items-start gap-4 rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-                    >
-                      <span className="flex size-10 items-center justify-center rounded-full bg-sky-100 text-sky-500">
-                        <Icon className="size-5" aria-hidden />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          Step {index + 1}: {title}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">{description}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
+
+      {isPreviewOpen && previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 z-0 h-full w-full cursor-zoom-out"
+            onClick={handleClosePreview}
+            aria-label="Close preview"
+          />
+          <div className="relative z-10 mx-auto flex max-h-[90vh] max-w-4xl items-center justify-center p-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewUrl} alt="Full size schedule preview" className="max-h-full w-full rounded-2xl object-contain shadow-2xl" />
+            <Button
+              type="button"
+              size="icon"
+              variant="secondary"
+              className="absolute right-6 top-6 rounded-full bg-white/90 text-slate-900 hover:bg-white"
+              onClick={handleClosePreview}
+            >
+              <X className="size-5" />
+              <span className="sr-only">Close preview</span>
+            </Button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
