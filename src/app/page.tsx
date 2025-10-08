@@ -60,8 +60,6 @@ export default function Home() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const uploaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isUploaderHighlighted, setIsUploaderHighlighted] = useState(false);
 
   useEffect(() => {
     if (!image) {
@@ -142,27 +140,6 @@ export default function Home() {
     setIsPreviewOpen(false);
   };
 
-  const handleScrollToUploader = () => {
-    uploaderRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setIsUploaderHighlighted(true);
-
-    if (highlightTimeoutRef.current) {
-      clearTimeout(highlightTimeoutRef.current);
-    }
-
-    highlightTimeoutRef.current = setTimeout(() => {
-      setIsUploaderHighlighted(false);
-    }, 1400);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (highlightTimeoutRef.current) {
-        clearTimeout(highlightTimeoutRef.current);
-      }
-    };
-  }, []);
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(167,139,250,0.18),_transparent_55%)]" />
@@ -179,30 +156,20 @@ export default function Home() {
           <p className="mt-4 text-lg text-slate-200">
             Upload your schedule screenshot, let our OCR do the busy work, and download a clean .ics file ready to drop into your favorite calendar.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-4">
-            <div className="grid w-full gap-4 rounded-3xl border border-white/20 bg-white/10 p-6 text-left text-slate-100 backdrop-blur sm:grid-cols-3">
-              {steps.map(({ icon: Icon, title, description }, index) => (
-                <div key={title} className="flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/5 p-4">
-                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10 text-sky-100">
-                    <Icon className="size-5" aria-hidden />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-wide text-sky-100/90">
-                      Step {index + 1}: {title}
-                    </p>
-                    <p className="mt-2 text-sm text-slate-200/80">{description}</p>
-                  </div>
+          <div className="mt-8 grid w-full gap-4 rounded-3xl border border-white/20 bg-white/10 p-6 text-left text-slate-100 backdrop-blur sm:grid-cols-3">
+            {steps.map(({ icon: Icon, title, description }, index) => (
+              <div key={title} className="flex flex-col gap-3 rounded-2xl border border-white/20 bg-white/5 p-4">
+                <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10 text-sky-100">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-sky-100/90">
+                    Step {index + 1}: {title}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-200/80">{description}</p>
                 </div>
-              ))}
-            </div>
-            <Button
-              type="button"
-              size="lg"
-              className="gap-2 bg-sky-500 text-white hover:bg-sky-500/90"
-              onClick={handleScrollToUploader}
-            >
-              Let&apos;s go
-            </Button>
+              </div>
+            ))}
           </div>
         </header>
 
@@ -210,13 +177,7 @@ export default function Home() {
           ref={uploaderRef}
           className="mt-16 grid flex-1 gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"
         >
-          <Card
-            className={cn(
-              "border-white/20 bg-white/85 shadow-2xl shadow-sky-500/10 backdrop-blur",
-              isUploaderHighlighted &&
-                "ring-2 ring-sky-400/80 ring-offset-2 ring-offset-slate-950/40 transition duration-500 ease-out"
-            )}
-          >
+          <Card className="border-white/20 bg-white/85 shadow-2xl shadow-sky-500/10 backdrop-blur">
             <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
                 <CardTitle className="flex items-center gap-2 text-2xl text-slate-900">
