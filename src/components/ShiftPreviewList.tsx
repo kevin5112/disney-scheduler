@@ -11,10 +11,10 @@ export function ShiftPreviewList({ shifts }: Props) {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 md:grid-cols-2">
       {shifts.map((shift, index) => (
         <ShiftPreviewCard
-          key={index}
+          key={`${shift.date}-${shift.startTime}-${shift.endTime}-${index}`}
           date={shift.date}
           startTime={shift.startTime}
           endTime={shift.endTime}
