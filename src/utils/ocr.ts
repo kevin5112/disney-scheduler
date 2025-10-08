@@ -1,4 +1,4 @@
-import { createWorker } from "tesseract.js";
+import { PSM, createWorker } from "tesseract.js";
 import { preprocessImageForOCR } from "./preprocessImage";
 
 export async function extractTextFromImage(image: File): Promise<string> {
@@ -11,7 +11,7 @@ export async function extractTextFromImage(image: File): Promise<string> {
       tessedit_char_whitelist:
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:-/,. ",
       preserve_interword_spaces: "1",
-      tessedit_pageseg_mode: "4",
+      tessedit_pageseg_mode: PSM.SINGLE_COLUMN,
     });
 
     const {
