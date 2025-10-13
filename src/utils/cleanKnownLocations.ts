@@ -1,4 +1,13 @@
-const knownLocations = ["Falcon HH", "Rise", "Adventureland", "Tomorrowland"];
+const knownLocations = [
+  "Falcon HH",
+  "Rise",
+  "Adventureland",
+  "Tomorrowland",
+  "CDs Trn T",
+  "Resistance HH",
+  "Falcon",
+  "Mermaid Lagoon",
+];
 
 export function cleanKnownLocations(line: string): string {
   for (const location of knownLocations) {
