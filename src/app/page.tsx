@@ -283,37 +283,24 @@ export default function Home() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4 border-t border-slate-200/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-500">Run the extractor to populate your shifts, then export them to your calendar.</p>
-              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-                <Button
-                  type="button"
-                  onClick={handleRunOCR}
-                  disabled={!image || loading}
-                  className="w-full gap-2 bg-sky-500 text-white hover:bg-sky-500/90 sm:w-auto"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Scanning upload…
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="size-4" />
-                      Extract shifts
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleDownloadICS}
-                  disabled={!hasSchedule}
-                  className="w-full gap-2 border-slate-300 text-slate-700 hover:border-sky-400 hover:text-sky-600 sm:w-auto"
-                >
-                  <Download className="size-4" />
-                  Download .ics file
-                </Button>
-              </div>
+              <Button
+                type="button"
+                onClick={handleRunOCR}
+                disabled={!image || loading}
+                className="w-full gap-2 bg-sky-500 text-white hover:bg-sky-500/90 sm:w-auto"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Scanning upload…
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="size-4" />
+                    Extract shifts
+                  </>
+                )}
+              </Button>
             </CardFooter>
           </Card>
 
@@ -355,6 +342,24 @@ export default function Home() {
                   </div>
                 )}
               </CardContent>
+
+              {hasSchedule && (
+                <CardFooter className="flex flex-col gap-4 border-t border-slate-200/70 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-slate-600">
+                    Looks good? Download your shifts as an .ics calendar file.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleDownloadICS}
+                    disabled={!hasSchedule}
+                    className="w-full gap-2 border-slate-300 text-slate-700 hover:border-sky-400 hover:text-sky-600 sm:w-auto"
+                  >
+                    <Download className="size-4" />
+                    Download .ics file
+                  </Button>
+                </CardFooter>
+              )}
             </Card>
 
           </div>

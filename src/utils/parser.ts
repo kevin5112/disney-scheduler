@@ -20,12 +20,39 @@ const dayRegex = new RegExp(`^${dayPattern}$`, "i");
 const timeRangeRegex =
   /(\d{1,2}[:.]\d{2})\s*(AM|PM)?\s*(?:to|[-–])\s*(\d{1,2}[:.]\d{2})\s*(AM|PM)?/i;
 
+const timeTokenRegex = /([0-9OolISB]{1,2})([:.])([0-9OolISB]{2})/g;
+
+const timeLookalikeMap: Record<string, string> = {
+  O: "0",
+  o: "0",
+  "|": "1",
+  l: "1",
+  I: "1",
+  B: "8",
+  S: "5",
+  s: "5",
+};
+
+function normaliseTimeToken(segment: string): string {
+  return segment
+    .split("")
+    .map((char) => timeLookalikeMap[char] ?? char)
+    .join("");
+}
+
 function normaliseLine(line: string): string {
-  return line
+  const cleaned = line
     .replace(/[•|]/g, " ")
+    .replace(/[–—]/g, "-")
     .replace(/O'Clock/gi, ":00")
     .replace(/\s+/g, " ")
     .trim();
+
+  return cleaned.replace(timeTokenRegex, (_, hours: string, _separator: string, minutes: string) => {
+    const normalisedHours = normaliseTimeToken(hours);
+    const normalisedMinutes = normaliseTimeToken(minutes);
+    return `${normalisedHours}:${normalisedMinutes}`;
+  });
 }
 
 export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
@@ -68,7 +95,18 @@ export function parseScheduleFromOCR(text: string): ScheduleEntry[] {
         pointer++;
       }
 
-      const location = locationParts.join(" ").trim() || "Unknown";
+      const filteredLocation = locationParts
+        .map((part) => part.replace(/Pick up (?:a )?shift[s]?/gi, "").trim())
+        .filter(
+          (part) =>
+            part &&
+            !/pick\s+up/i.test(part) &&
+            !/shift exchange/i.test(part) &&
+            !/schedule tools/i.test(part) &&
+            !/jump to week/i.test(part),
+        );
+
+      const location = filteredLocation[0]?.trim() || "Unknown";
       entries.push({
         date: currentDate,
         startTime,
