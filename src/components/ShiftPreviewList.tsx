@@ -11,16 +11,22 @@ export function ShiftPreviewList({ shifts }: Props) {
   }
 
   return (
-    <div className="grid gap-4">
+    <ol className="space-y-6">
       {shifts.map((shift, index) => (
-        <ShiftPreviewCard
-          key={index}
-          date={shift.date}
-          startTime={shift.startTime}
-          endTime={shift.endTime}
-          location={shift.location}
-        />
+        <li key={`${shift.date}-${shift.startTime}-${shift.endTime}-${index}`} className="flex items-start gap-4">
+          <span className="mt-1 inline-flex size-9 items-center justify-center rounded-full bg-sky-500 text-sm font-semibold text-white shadow-lg shadow-sky-500/30">
+            {index + 1}
+          </span>
+          <div className="flex-1">
+            <ShiftPreviewCard
+              date={shift.date}
+              startTime={shift.startTime}
+              endTime={shift.endTime}
+              location={shift.location}
+            />
+          </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
