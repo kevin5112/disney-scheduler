@@ -96,9 +96,9 @@ export async function extractTextFromImage(
       tessedit_pageseg_mode: PSM.SINGLE_COLUMN,
     });
 
-    const {
-      data: { text, words },
-    } = await worker.recognize(source);
+    const result = await worker.recognize(source);
+    const { text } = result.data;
+    const words = (result.data as typeof result.data & { words?: Word[] }).words;
 
     await worker.terminate();
     const timeTokens = collectTimeOverrides(words ?? undefined);
