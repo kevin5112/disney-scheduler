@@ -1,6 +1,11 @@
 import { OEM, PSM, createWorker } from "tesseract.js";
 import { preprocessImageForOCR } from "./preprocessImage";
 
+type CandidateResult = {
+  text: string;
+  confidence: number;
+};
+
 export async function extractTextFromImage(image: File): Promise<string> {
   const worker = await createWorker("eng");
 
@@ -14,7 +19,7 @@ export async function extractTextFromImage(image: File): Promise<string> {
 
     const baseParameters = {
       tessedit_char_whitelist:
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:-/,. ",
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:-/,. &'()",
       preserve_interword_spaces: "1",
       tessedit_ocr_engine_mode: OEM.LSTM_ONLY,
       user_defined_dpi: "300",
@@ -26,8 +31,7 @@ export async function extractTextFromImage(image: File): Promise<string> {
       PSM.SPARSE_TEXT,
     ];
 
-    let bestText = "";
-    let bestConfidence = -Infinity;
+    const candidateResults: CandidateResult[] = [];
 
     for (const source of sources) {
       for (const mode of pageSegmentationModes) {
@@ -41,19 +45,37 @@ export async function extractTextFromImage(image: File): Promise<string> {
         } = await worker.recognize(source);
 
         const trimmedText = text.trim();
-
-        if (
-          confidence > bestConfidence ||
-          (confidence === bestConfidence && trimmedText.length > bestText.length)
-        ) {
-          bestConfidence = confidence;
-          bestText = trimmedText;
-        }
+        candidateResults.push({ text: trimmedText, confidence });
       }
     }
 
     await worker.terminate();
-    return bestText || "";
+
+    if (!candidateResults.length) {
+      return "";
+    }
+
+    const score = ({ text, confidence }: CandidateResult) => {
+      const normalisedLength = Math.min(text.length, 2000);
+      return confidence + normalisedLength * 0.02;
+    };
+
+    let bestResult = candidateResults[0];
+
+    for (let index = 1; index < candidateResults.length; index += 1) {
+      const candidate = candidateResults[index];
+      const bestScore = score(bestResult);
+      const currentScore = score(candidate);
+      if (currentScore > bestScore) {
+        bestResult = candidate;
+        continue;
+      }
+      if (currentScore === bestScore && candidate.text.length > bestResult.text.length) {
+        bestResult = candidate;
+      }
+    }
+
+    return bestResult.text || "";
   } catch (err) {
     console.error("OCR failed:", err);
     await worker.terminate();

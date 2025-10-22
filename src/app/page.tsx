@@ -58,8 +58,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [parsedSchedule, setParsedSchedule] = useState<ScheduleEntry[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [rawOCRText, setRawOCRText] = useState<string | null>(null);
+  const [processedOCRText, setProcessedOCRText] = useState<string | null>(null);
   const uploaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isDebugMode = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     if (!image) {
@@ -93,6 +96,8 @@ export default function Home() {
       setImage(event.target.files[0]);
       setParsedSchedule([]);
       setIsPreviewOpen(false);
+      setRawOCRText(null);
+      setProcessedOCRText(null);
     }
   };
 
@@ -100,6 +105,8 @@ export default function Home() {
     setImage(null);
     setParsedSchedule([]);
     setIsPreviewOpen(false);
+    setRawOCRText(null);
+    setProcessedOCRText(null);
   };
 
   const handleReplacePhoto = () => {
@@ -110,12 +117,16 @@ export default function Home() {
     if (!image) return;
     setLoading(true);
     setParsedSchedule([]);
+    setRawOCRText(null);
+    setProcessedOCRText(null);
 
     try {
       const text = await extractTextFromImage(image);
+      setRawOCRText(text);
       const cleanedText = cleanOCRText(text);
       const withDates = resolveRelativeDates(cleanedText);
       const finalText = withDates.split("\n").map(cleanKnownLocations).join("\n");
+      setProcessedOCRText(finalText);
 
       const parsed = parseScheduleFromOCR(finalText);
       setParsedSchedule(parsed);
@@ -361,6 +372,31 @@ export default function Home() {
                 </CardFooter>
               )}
             </Card>
+
+            {isDebugMode && (rawOCRText || processedOCRText) && (
+              <Card className="border-dashed border-slate-300 bg-white/70">
+                <CardHeader>
+                  <CardTitle className="text-base text-slate-900">OCR debug output</CardTitle>
+                  <CardDescription className="text-xs text-slate-500">
+                    Visible only in development and test builds to help verify extraction quality.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {rawOCRText && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Raw OCR text</p>
+                      <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-slate-950/90 p-4 font-mono text-[11px] leading-relaxed text-slate-100">{rawOCRText}</pre>
+                    </div>
+                  )}
+                  {processedOCRText && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Processed for parsing</p>
+                      <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-slate-950/80 p-4 font-mono text-[11px] leading-relaxed text-slate-100">{processedOCRText}</pre>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           </div>
         </div>
