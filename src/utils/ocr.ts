@@ -49,15 +49,23 @@ export async function extractTextFromImage(image: File): Promise<string> {
       }
     }
 
-    await worker.terminate();
-
     if (!candidateResults.length) {
       return "";
     }
 
     const score = ({ text, confidence }: CandidateResult) => {
-      const normalisedLength = Math.min(text.length, 2000);
-      return confidence + normalisedLength * 0.02;
+      const compactLength = Math.min(text.replace(/\s+/g, "").length, 2000);
+      if (compactLength === 0) return 0;
+
+      const lineCount = text
+        .split(/\n+/)
+        .filter((line) => line.trim().length > 0).length;
+
+      const confidenceWeight = confidence * Math.min(1, compactLength / 12);
+      const lengthWeight = compactLength * 1.4;
+      const structureWeight = lineCount * 4;
+
+      return confidenceWeight + lengthWeight + structureWeight;
     };
 
     let bestResult = candidateResults[0];
@@ -78,7 +86,8 @@ export async function extractTextFromImage(image: File): Promise<string> {
     return bestResult.text || "";
   } catch (err) {
     console.error("OCR failed:", err);
-    await worker.terminate();
     return "Error extracting text";
+  } finally {
+    await worker.terminate();
   }
 }
