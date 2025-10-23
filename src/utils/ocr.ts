@@ -61,11 +61,36 @@ export async function extractTextFromImage(image: File): Promise<string> {
         .split(/\n+/)
         .filter((line) => line.trim().length > 0).length;
 
+      const tokens = text
+        .split(/[^A-Za-z0-9]+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+      const multiCharTokens = tokens.filter((token) => token.length >= 3).length;
+
+      const uniqueCharacters = new Set(text.replace(/\s+/g, "")).size;
+
       const confidenceWeight = confidence * Math.min(1, compactLength / 12);
       const lengthWeight = compactLength * 1.4;
       const structureWeight = lineCount * 4;
+      const vocabularyWeight = multiCharTokens * 6;
+      const diversityWeight = uniqueCharacters * 2.5;
 
-      return confidenceWeight + lengthWeight + structureWeight;
+      let totalScore =
+        confidenceWeight +
+        lengthWeight +
+        structureWeight +
+        vocabularyWeight +
+        diversityWeight;
+
+      if (compactLength <= 2) {
+        totalScore -= 45;
+      } else if (compactLength <= 3) {
+        totalScore -= 25;
+      } else if (multiCharTokens === 0) {
+        totalScore -= 12;
+      }
+
+      return Math.max(totalScore, 0);
     };
 
     let bestResult = candidateResults[0];
