@@ -18,7 +18,7 @@ import { parseScheduleFromOCR, ScheduleEntry } from "@/utils/parser";
 import { resolveRelativeDates } from "@/utils/resolveRelativeDates";
 import { CalendarRange, Download, Loader2, Sparkles, UploadCloud, Wand2, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Step = {
   icon: LucideIcon;
@@ -58,8 +58,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [parsedSchedule, setParsedSchedule] = useState<ScheduleEntry[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [rawOCRText, setRawOCRText] = useState<string | null>(null);
+  const [processedOCRText, setProcessedOCRText] = useState<string | null>(null);
   const uploaderRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isDebugMode = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     if (!image) {
@@ -93,6 +96,8 @@ export default function Home() {
       setImage(event.target.files[0]);
       setParsedSchedule([]);
       setIsPreviewOpen(false);
+      setRawOCRText(null);
+      setProcessedOCRText(null);
     }
   };
 
@@ -100,6 +105,8 @@ export default function Home() {
     setImage(null);
     setParsedSchedule([]);
     setIsPreviewOpen(false);
+    setRawOCRText(null);
+    setProcessedOCRText(null);
   };
 
   const handleReplacePhoto = () => {
@@ -110,12 +117,16 @@ export default function Home() {
     if (!image) return;
     setLoading(true);
     setParsedSchedule([]);
+    setRawOCRText(null);
+    setProcessedOCRText(null);
 
     try {
       const text = await extractTextFromImage(image);
+      setRawOCRText(text);
       const cleanedText = cleanOCRText(text);
       const withDates = resolveRelativeDates(cleanedText);
       const finalText = withDates.split("\n").map(cleanKnownLocations).join("\n");
+      setProcessedOCRText(finalText);
 
       const parsed = parseScheduleFromOCR(finalText);
       setParsedSchedule(parsed);
@@ -150,6 +161,30 @@ export default function Home() {
   const handleClosePreview = () => {
     setIsPreviewOpen(false);
   };
+
+  const handleShiftLocationChange = useCallback((index: number, location: string) => {
+    setParsedSchedule((previous) =>
+      previous.map((shift, idx) => (idx === index ? { ...shift, location } : shift)),
+    );
+  }, []);
+
+  const handleShiftDateChange = useCallback((index: number, date: string) => {
+    setParsedSchedule((previous) =>
+      previous.map((shift, idx) => (idx === index ? { ...shift, date } : shift)),
+    );
+  }, []);
+
+  const handleShiftStartTimeChange = useCallback((index: number, startTime: string) => {
+    setParsedSchedule((previous) =>
+      previous.map((shift, idx) => (idx === index ? { ...shift, startTime } : shift)),
+    );
+  }, []);
+
+  const handleShiftEndTimeChange = useCallback((index: number, endTime: string) => {
+    setParsedSchedule((previous) =>
+      previous.map((shift, idx) => (idx === index ? { ...shift, endTime } : shift)),
+    );
+  }, []);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950">
@@ -332,7 +367,19 @@ export default function Home() {
                 )}
 
                 {hasSchedule ? (
-                  <ShiftPreviewList shifts={parsedSchedule} />
+                  <>
+                    <div className="rounded-2xl border border-slate-200/70 bg-white/70 p-4 text-sm text-slate-600 shadow-inner">
+                      OCR clipped a location name? Update it directly in the preview card below. We’ll use your edits when exporting.
+                    </div>
+            <ShiftPreviewList
+              shifts={parsedSchedule}
+              isEditable
+              onLocationChange={handleShiftLocationChange}
+              onDateChange={handleShiftDateChange}
+              onStartTimeChange={handleShiftStartTimeChange}
+              onEndTimeChange={handleShiftEndTimeChange}
+            />
+                  </>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 p-6 text-center text-slate-500">
                     <p className="text-sm font-medium">No shifts yet—run the extractor to see them here.</p>
@@ -361,6 +408,31 @@ export default function Home() {
                 </CardFooter>
               )}
             </Card>
+
+            {isDebugMode && (rawOCRText || processedOCRText) && (
+              <Card className="border-dashed border-slate-300 bg-white/70">
+                <CardHeader>
+                  <CardTitle className="text-base text-slate-900">OCR debug output</CardTitle>
+                  <CardDescription className="text-xs text-slate-500">
+                    Visible only in development and test builds to help verify extraction quality.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {rawOCRText && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Raw OCR text</p>
+                      <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-slate-950/90 p-4 font-mono text-[11px] leading-relaxed text-slate-100">{rawOCRText}</pre>
+                    </div>
+                  )}
+                  {processedOCRText && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Processed for parsing</p>
+                      <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-slate-950/80 p-4 font-mono text-[11px] leading-relaxed text-slate-100">{processedOCRText}</pre>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
           </div>
         </div>

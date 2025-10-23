@@ -3,9 +3,21 @@ import { ScheduleEntry } from "@/utils/parser"; // if this is your extracted typ
 
 type Props = {
   shifts: ScheduleEntry[];
+  isEditable?: boolean;
+  onLocationChange?: (index: number, location: string) => void;
+  onDateChange?: (index: number, date: string) => void;
+  onStartTimeChange?: (index: number, startTime: string) => void;
+  onEndTimeChange?: (index: number, endTime: string) => void;
 };
 
-export function ShiftPreviewList({ shifts }: Props) {
+export function ShiftPreviewList({
+  shifts,
+  isEditable = false,
+  onLocationChange,
+  onDateChange,
+  onStartTimeChange,
+  onEndTimeChange,
+}: Props) {
   if (shifts.length === 0) {
     return <p className="text-sm text-muted-foreground">No shifts detected.</p>;
   }
@@ -23,6 +35,26 @@ export function ShiftPreviewList({ shifts }: Props) {
               startTime={shift.startTime}
               endTime={shift.endTime}
               location={shift.location}
+              isEditable={isEditable}
+              locationInputId={`shift-location-${index}`}
+              onLocationChange={
+                onLocationChange
+                  ? (value) => onLocationChange(index, value)
+                  : undefined
+              }
+              onDateChange={
+                onDateChange ? (value) => onDateChange(index, value) : undefined
+              }
+              onStartTimeChange={
+                onStartTimeChange
+                  ? (value) => onStartTimeChange(index, value)
+                  : undefined
+              }
+              onEndTimeChange={
+                onEndTimeChange
+                  ? (value) => onEndTimeChange(index, value)
+                  : undefined
+              }
             />
           </div>
         </li>
